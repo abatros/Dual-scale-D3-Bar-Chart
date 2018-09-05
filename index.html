@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.y.axisRight text {
+    fill: orange;
+}
+
+.y.axisLeft text {
+    fill: steelblue;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar1 {
+  fill: steelblue;
+}
+
+.bar2 {
+  fill: orange;
+}
+
+.x.axis path {
+  display: none;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://d3js.org/d3-dsv.v1.min.js"></script>
+
+<script type="text/javascript" src="./data-tsv.js">
+</script>
+
+<script>
+
+//var data = d3.tsvParse(_text_data);
+var data = d3.dsvFormat(' ').parse(_text_data);
+console.log(data);
+
+
+var margin = {top: 80, right: 80, bottom: 80, left: 80},
+    width = 600 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+console.log(`max(money):${d3.max(data, d=>+d.money)}`)
+console.log(`min(money):${d3.min(data, d=>+d.money)}`)
+console.log(`max(number):${d3.max(data, d=>+d.number)}`)
+
+var xf_ = d3.scale.ordinal()
+    .domain(data.map(d=>d.year))
+    .rangeRoundBands([0, width], .1);
+
+var yf1_ = d3.scale.linear()
+//  .domain([300, 1100])
+.domain([300, d3.max(data, d=>+d.money)])
+.range([height, 0]);
+
+
+//var yf1_ = d3.scale.linear().domain([300, 1100]).range([0,height]);
+var yf2_ = d3.scale.linear()
+.domain([20, 80])
+.range([height, 0]);
+
+
+
+var xAxis = d3.svg.axis()
+    .scale(xf_)
+    .orient("bottom");
+
+// create left yAxis
+var yAxisLeft = d3.svg.axis().scale(yf1_).ticks(7).orient("left");
+// create right yAxis
+var yAxisRight = d3.svg.axis().scale(yf2_).ticks(6).orient("right");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("class", "graph")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+//d3.tsv("data.tsv", type, function(error, data) {
+
+
+
+
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+	  .attr("class", "y axis axisLeft")
+	  .attr("transform", "translate(0,0)")
+	  .call(yAxisLeft)
+	.append("text")
+	  .attr("y", 6)
+	  .attr("dy", "-2em")
+	  .style("text-anchor", "end")
+	  .style("text-anchor", "end")
+	  .text("Dollars");
+
+  svg.append("g")
+	  .attr("class", "y axis axisRight")
+	  .attr("transform", "translate(" + (width) + ",0)")
+	  .call(yAxisRight)
+	.append("text")
+	  .attr("y", 6)
+	  .attr("dy", "-2em")
+	  .attr("dx", "2em")
+	  .style("text-anchor", "end")
+	  .text("#");
+
+  bars = svg.selectAll(".bar").data(data).enter();
+
+  bars.append("rect")
+      .attr("class", "bar1")
+      .attr("x", d=>xf_(d.year))
+      .attr("width", xf_.rangeBand()/2)
+      .attr('y',d=>yf1_(d.money))
+  	  .attr("height", (d,i,j) => (height-yf1_(d.money)));
+
+  bars.append("rect")
+      .attr("class", "bar2")
+      .attr("x", d=>xf_(d.year) + xf_.rangeBand()/2)
+      .attr("width", xf_.rangeBand() / 2)
+      .attr("y", d=>yf2_(d.number))
+  	  .attr("height", (d,i,j) => (height-yf2_(d.number)));
+
+</script>
